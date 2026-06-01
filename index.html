@@ -62,7 +62,7 @@ textarea{min-height:65px;resize:vertical}
 <div class="nav"><div class="nav-inner"><h1>AI 菜谱助手</h1><span class="nav-badge">Demo</span><div class="nav-right"><button class="btn-sm" onclick="randomPick()">🎲 随机</button><button class="btn-sm" onclick="resetAll()">↺ 重置</button></div></div></div>
 <div class="container">
 <div class="hero"><h2>今天吃什么？</h2><p>输入冰箱里的食材，AI 帮你推荐菜谱</p></div>
-<div class="card"><label>🥕 食材</label><textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea><div class="tags" id="tagBar"></div><input type="text" id="pref" placeholder="要求（选填）：少油、素食" /><button class="btn" onclick="generate()">✨ AI 推荐菜谱</button></div>
+<div class="card"><label>🥕 食材</label><textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea><div class="tags" id="tagBar"></div><button class="btn" id="genBtn" onclick="generate()">✨ AI 推荐菜谱</button></div>
 <div class="gen-area" id="genArea"><div class="filter-bar" id="filterBar"></div><div class="card"><div class="recipe-list" id="resultList"></div></div></div>
 <div class="empty" id="empty"><div style="font-size:40px">🍽️</div><p>输入食材，点推荐试试</p></div>
 </div>
@@ -373,7 +373,7 @@ const r=DB[Math.floor(Math.random()*DB.length)];showD(r.name);
 }
 
 function resetAll(){
-document.getElementById("ings").value="";document.getElementById("pref").value="";
+document.getElementById("ings").value="";;
 document.getElementById("genArea").classList.remove("show");document.getElementById("empty").style.display="block";
 document.getElementById("filterBar").innerHTML="";lastResults=[];
 }
