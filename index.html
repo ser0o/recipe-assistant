@@ -352,10 +352,12 @@ d.i.forEach(function(x){const li=document.createElement("li");li.textContent=x;u
 const h3s=document.createElement("h3");h3s.textContent="做法";b.appendChild(h3s);
 const ol=document.createElement("ol");
 d.s.forEach(function(x){const li=document.createElement("li");li.textContent=x;ol.appendChild(li)});b.appendChild(ol);
+const divb=document.createElement("div");divb.style.cssText="display:flex;justify-content:space-between;margin-top:14px";
 const btn1=document.createElement("button");btn1.className="modal-close";btn1.textContent="复制菜谱";
-btn1.onclick=function(){copyR(name)};b.appendChild(btn1);
+btn1.onclick=function(){copyR(name)};divb.appendChild(btn1);
 const btn2=document.createElement("button");btn2.className="modal-close";btn2.textContent="关闭";
-btn2.onclick=function(){closeD()};b.appendChild(btn2);
+btn2.onclick=function(){closeD()};divb.appendChild(btn2);
+b.appendChild(divb);
 m.classList.add("show");document.body.style.overflow="hidden";
 }
 
