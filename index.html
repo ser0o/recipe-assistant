@@ -56,65 +56,72 @@ textarea{min-height:65px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="nav">
-<div class="nav-inner">
-<h1>AI 菜谱助手</h1>
-<span class="nav-badge">Demo</span>
-</div>
-</div>
+<div class="nav"><div class="nav-inner"><h1>AI 菜谱助手</h1><span class="nav-badge">Demo</span></div></div>
 <div class="container">
-<div class="hero">
-<h2>今天吃什么？</h2>
-<p>输入冰箱里的食材，AI 帮你推荐菜谱</p>
-</div>
+<div class="hero"><h2>今天吃什么？</h2><p>输入冰箱里的食材，AI 帮你推荐菜谱</p></div>
 <div class="card">
-<label>🥕 食材</label>
-<textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea>
+<label>🥕 食材</label><textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea>
 <div class="tags" id="tagBar"></div>
 <input type="text" id="pref" placeholder="要求（选填）：少油、素食" />
 <button class="btn" id="genBtn" onclick="generate()">✨ AI 推荐菜谱</button>
 </div>
-<div class="gen-area" id="genArea">
-<div class="card"><div class="recipe-list" id="resultList"></div></div>
-</div>
+<div class="gen-area" id="genArea"><div class="card"><div class="recipe-list" id="resultList"></div></div></div>
 <div class="empty" id="empty"><div style="font-size:40px;margin-bottom:10px">🍽️</div><p>输入食材，点推荐试试</p></div>
 </div>
 <div class="modal-overlay" id="modal" onclick="if(event.target==this)closeD()"><div class="modal" id="modalBody"></div></div>
 <div class="footer">内容由 AI 生成，仅供参考</div>
 <script>
 const DB=[
-{name:"番茄炒蛋",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"酸甜开胃，国民家常菜",detail:{ings:["番茄 2个","鸡蛋 3个","葱 1根","盐","糖"],steps:["番茄切块，鸡蛋打散","热油炒熟鸡蛋盛出","炒番茄出汁加糖","倒回鸡蛋翻炒","撒葱花出锅"]}},
-{name:"麻婆豆腐",ings:["豆腐","猪肉","豆瓣酱"],time:"15分钟",diff:"★★☆",tags:["下饭","辣"],desc:"麻辣鲜香",detail:{ings:["嫩豆腐 1块","猪肉末 100g","豆瓣酱","花椒粉"],steps:["豆腐切块焯水","炒肉末加豆瓣酱","加水烧开放豆腐","小火炖5分钟勾芡","撒花椒粉"]}},
-{name:"青椒肉丝",ings:["青椒","猪肉"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"经典下饭菜",detail:{ings:["青椒 3个","猪肉 200g","蒜","生抽","淀粉"],steps:["青椒切丝，肉切丝腌制","热锅炒肉丝盛出","炒青椒丝断生","倒回肉丝翻炒出锅"]}},
-{name:"可乐鸡翅",ings:["鸡翅","可乐"],time:"30分钟",diff:"★★☆",tags:["荤菜"],desc:"零失败宴客菜",detail:{ings:["鸡中翅 10个","可乐 1罐","姜","生抽","料酒"],steps:["鸡翅划刀焯水","煎至两面金黄","加生抽料酒姜","倒可乐炖15分钟","大火收汁"]}},
-{name:"蒜蓉西兰花",ings:["西兰花","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽低脂",detail:{ings:["西兰花 1颗","蒜 4瓣","盐","蚝油"],steps:["西兰花掰小朵焯水","爆香蒜末","加西兰花翻炒","加蚝油盐出锅"]}},
-{name:"红烧肉",ings:["五花肉","酱油","冰糖"],time:"60分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"肥而不腻",detail:{ings:["五花肉 500g","冰糖","生抽","老抽","八角","姜"],steps:["肉切块焯水","煎出油加冰糖炒糖色","加生抽老抽八角姜","加开水小火炖40分钟","大火收汁"]}},
-{name:"酸辣土豆丝",ings:["土豆","辣椒"],time:"10分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"酸辣脆爽",detail:{ings:["土豆 2个","干辣椒","醋","花椒"],steps:["土豆切丝泡水","爆香花椒干辣椒","大火炒土豆丝","加醋盐翻炒出锅"]}},
-{name:"蛋炒饭",ings:["鸡蛋","米饭"],time:"8分钟",diff:"★☆☆",tags:["主食","快手"],desc:"最简单的美味",detail:{ings:["隔夜米饭 1碗","鸡蛋 2个","葱","盐"],steps:["鸡蛋打散","热油炒鸡蛋凝固","倒米饭大火翻炒","加盐葱花炒匀出锅"]}},
-{name:"西红柿蛋汤",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["汤","快手"],desc:"家常快手汤",detail:{ings:["番茄 2个","鸡蛋 2个","葱","盐"],steps:["番茄切块炒出汁","加两碗水烧开","淋蛋液搅散","加盐葱花出锅"]}},
-{name:"凉拌黄瓜",ings:["黄瓜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","凉菜","快手"],desc:"清爽开胃",detail:{ings:["黄瓜 2根","蒜","醋","生抽","辣椒油"],steps:["黄瓜拍碎切段","蒜切末","加醋生抽辣椒油拌匀","腌5分钟即可"]}},
-{name:"鱼香肉丝",ings:["猪肉","木耳","胡萝卜","青椒"],time:"20分钟",diff:"★★☆",tags:["荤菜","下饭"],desc:"酸甜微辣",detail:{ings:["猪肉 200g","木耳","胡萝卜","青椒","泡椒"],steps:["肉切丝腌制","胡萝卜青椒切丝","调鱼香汁","炒肉丝盛出","爆香泡椒炒蔬菜","加肉丝和汁翻炒"]}},
-{name:"糖醋排骨",ings:["排骨","醋","糖"],time:"40分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜可口",detail:{ings:["排骨 500g","醋","糖","生抽","料酒","姜"],steps:["排骨焯水","炒糖色加排骨上色","加醋料酒生抽姜","加开水小火炖30分钟","大火收汁"]}},
-{name:"葱油面",ings:["面条","葱","酱油"],time:"10分钟",diff:"★☆☆",tags:["主食","快手"],desc:"葱香四溢",detail:{ings:["面条 200g","葱 一把","生抽","老抽","糖"],steps:["面条煮熟过凉水","葱切段炸葱油","生抽老抽糖调汁","面条拌酱汁和葱油"]}},
-{name:"紫菜蛋花汤",ings:["紫菜","鸡蛋"],time:"5分钟",diff:"★☆☆",tags:["汤","快手"],desc:"最简单的汤",detail:{ings:["紫菜","鸡蛋 1个","虾皮","盐","香油"],steps:["水烧开淋蛋液","碗里放紫菜虾皮","汤冲入加盐香油"]}},
-{name:"回锅肉",ings:["五花肉","青椒","蒜苗","豆瓣酱"],time:"25分钟",diff:"★★☆",tags:["荤菜","下饭","辣"],desc:"川菜之王",detail:{ings:["五花肉 300g","青椒 2个","蒜苗","豆瓣酱"],steps:["五花肉煮至八分熟切片","热锅煎出油","加豆瓣酱炒红油","加青椒蒜苗翻炒出锅"]}},
-{name:"地三鲜",ings:["土豆","茄子","青椒"],time:"20分钟",diff:"★★☆",tags:["素菜","下饭"],desc:"东北经典素菜",detail:{ings:["土豆 1个","茄子 1根","青椒 2个","蒜","生抽"],steps:["土豆茄子切块","分别炸至金黄","爆香蒜末","加所有材料翻炒","加生抽调味出锅"]}},
-{name:"番茄牛腩",ings:["牛腩","番茄"],time:"90分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜浓郁",detail:{ings:["牛腩 500g","番茄 3个","姜","番茄酱","盐"],steps:["牛腩切块焯水","番茄炒出汁","加番茄酱和水烧开","放牛腩小火炖1小时","加盐出锅"]}},
-{name:"手撕包菜",ings:["包菜","辣椒","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"脆嫩微辣",detail:{ings:["包菜半颗","干辣椒","蒜","生抽","醋"],steps:["包菜手撕成片","爆香干辣椒蒜片","大火炒包菜变软","淋醋生抽加盐出锅"]}},
-{name:"虾仁滑蛋",ings:["虾仁","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"嫩滑鲜美",detail:{ings:["虾仁 200g","鸡蛋 3个","盐","料酒"],steps:["虾仁加料酒腌","鸡蛋打散","炒虾仁变色盛出","蛋液半凝固加虾仁翻炒"]}},
-{name:"皮蛋豆腐",ings:["豆腐","皮蛋"],time:"5分钟",diff:"★☆☆",tags:["凉菜","快手"],desc:"简单清爽",detail:{ings:["内酯豆腐 1盒","皮蛋 2个","生抽","香油","葱"],steps:["豆腐倒扣盘里","皮蛋切碎铺上","淋生抽香油撒葱花"]}},
-{name:"冬瓜排骨汤",ings:["排骨","冬瓜"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清淡鲜美",detail:{ings:["排骨 300g","冬瓜 500g","姜","盐"],steps:["排骨焯水","加姜片足水炖40分钟","冬瓜切块加入","再煮15分钟加盐"]}},
-{name:"玉米排骨汤",ings:["排骨","玉米"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清甜暖胃",detail:{ings:["排骨 300g","玉米 2根","胡萝卜","姜","盐"],steps:["排骨焯水","玉米切段","加姜片足水烧开","转小火炖50分钟加盐"]}},
-{name:"清炒时蔬",ings:["青菜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽健康",detail:{ings:["青菜 300g","蒜 3瓣","盐"],steps:["青菜洗净","爆香蒜末","大火炒青菜变软","加盐出锅"]}},
-{name:"啤酒鸭",ings:["鸭","啤酒"],time:"50分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"鲜香入味",detail:{ings:["鸭半只","啤酒 1罐","姜","八角","生抽","糖"],steps:["鸭斩块焯水","炒至微黄出油","加姜八角糖翻炒","倒啤酒大火烧开","转小火焖40分钟收汁"]}},
-{name:"香菇滑鸡",ings:["鸡","香菇"],time:"30分钟",diff:"★★☆",tags:["荤菜","大菜"],desc:"香菇鲜鸡嫩",detail:{ings:["鸡腿 2个","干香菇 8朵","姜","生抽","料酒","淀粉"],steps:["鸡腿去骨切块腌制","香菇泡发切片","姜蒜爆香炒鸡块","加香菇生抽","小火焖15分钟"]}},
+{name:"番茄炒蛋",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"酸甜开胃",d:{i:["番茄2个","鸡蛋3个","葱","盐","糖"],s:["番茄切块鸡蛋打散","炒熟鸡蛋盛出","炒番茄出汁加糖","倒回鸡蛋翻炒","撒葱花出锅"]}},
+{name:"麻婆豆腐",ings:["豆腐","猪肉","豆瓣酱"],time:"15分钟",diff:"★★☆",tags:["下饭","辣"],desc:"麻辣鲜香",d:{i:["嫩豆腐1块","猪肉末100g","豆瓣酱","花椒粉","葱姜蒜"],s:["豆腐切块焯水","炒肉末加豆瓣酱出红油","加水烧开放豆腐","小火炖5分钟勾芡","撒花椒粉葱花"]}},
+{name:"青椒肉丝",ings:["青椒","猪肉"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"经典下饭菜",d:{i:["青椒3个","猪肉200g","蒜","生抽","淀粉"],s:["青椒切丝肉切丝腌制","热锅炒肉丝盛出","炒青椒丝断生","倒回肉丝翻炒出锅"]}},
+{name:"可乐鸡翅",ings:["鸡翅","可乐"],time:"30分钟",diff:"★★☆",tags:["荤菜"],desc:"零失败宴客菜",d:{i:["鸡中翅10个","可乐1罐","姜","生抽","料酒"],s:["鸡翅划刀焯水","煎至两面金黄","加生抽料酒姜","倒可乐炖15分钟","大火收汁"]}},
+{name:"蒜蓉西兰花",ings:["西兰花","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽低脂",d:{i:["西兰花1颗","蒜4瓣","盐","蚝油"],s:["西兰花掰小朵焯水","爆香蒜末","加西兰花翻炒","加蚝油盐出锅"]}},
+{name:"红烧肉",ings:["五花肉","酱油","冰糖"],time:"60分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"肥而不腻",d:{i:["五花肉500g","冰糖30g","生抽","老抽","八角","姜"],s:["肉切块焯水","煎出油加冰糖炒糖色","加生抽老抽八角姜","加开水小火炖40分钟","大火收汁"]}},
+{name:"酸辣土豆丝",ings:["土豆","辣椒"],time:"10分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"酸辣脆爽",d:{i:["土豆2个","干辣椒","醋","花椒"],s:["土豆切丝泡水","爆香花椒干辣椒","大火炒土豆丝","加醋盐翻炒出锅"]}},
+{name:"蛋炒饭",ings:["鸡蛋","米饭"],time:"8分钟",diff:"★☆☆",tags:["主食","快手"],desc:"最简单的美味",d:{i:["隔夜米饭1碗","鸡蛋2个","葱","盐"],s:["鸡蛋打散","热油炒鸡蛋凝固","倒米饭大火翻炒","加盐葱花炒匀出锅"]}},
+{name:"西红柿蛋汤",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["汤","快手"],desc:"家常快手汤",d:{i:["番茄2个","鸡蛋2个","葱","盐"],s:["番茄切块炒出汁","加两碗水烧开","淋蛋液搅散","加盐葱花出锅"]}},
+{name:"凉拌黄瓜",ings:["黄瓜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","凉菜","快手"],desc:"清爽开胃",d:{i:["黄瓜2根","蒜","醋","生抽","辣椒油"],s:["黄瓜拍碎切段","蒜切末","加醋生抽辣椒油拌匀","腌5分钟即可"]}},
+{name:"鱼香肉丝",ings:["猪肉","木耳","胡萝卜","青椒"],time:"20分钟",diff:"★★☆",tags:["荤菜","下饭"],desc:"酸甜微辣",d:{i:["猪肉200g","木耳","胡萝卜","青椒","泡椒"],s:["肉切丝腌制","胡萝卜青椒切丝","调鱼香汁","炒肉丝盛出","爆香泡椒炒蔬菜","加肉丝和汁翻炒"]}},
+{name:"糖醋排骨",ings:["排骨","醋","糖"],time:"40分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜可口",d:{i:["排骨500g","醋","糖","生抽","料酒","姜"],s:["排骨焯水","炒糖色加排骨上色","加醋料酒生抽姜","加开水小火炖30分钟","大火收汁"]}},
+{name:"葱油面",ings:["面条","葱","酱油"],time:"10分钟",diff:"★☆☆",tags:["主食","快手"],desc:"葱香四溢",d:{i:["面条200g","葱一把","生抽","老抽","糖"],s:["面条煮熟过凉水","葱切段炸葱油","生抽老抽糖调汁","面条拌酱汁葱油"]}},
+{name:"紫菜蛋花汤",ings:["紫菜","鸡蛋"],time:"5分钟",diff:"★☆☆",tags:["汤","快手"],desc:"最简单的汤",d:{i:["紫菜","鸡蛋1个","虾皮","盐","香油"],s:["水烧开淋蛋液","碗里放紫菜虾皮","汤冲入加盐香油"]}},
+{name:"回锅肉",ings:["五花肉","青椒","蒜苗","豆瓣酱"],time:"25分钟",diff:"★★☆",tags:["荤菜","下饭","辣"],desc:"川菜之王",d:{i:["五花肉300g","青椒2个","蒜苗","豆瓣酱"],s:["五花肉煮至八分熟切片","热锅煎出油","加豆瓣酱炒红油","加青椒蒜苗翻炒出锅"]}},
+{name:"地三鲜",ings:["土豆","茄子","青椒"],time:"20分钟",diff:"★★☆",tags:["素菜","下饭"],desc:"东北经典",d:{i:["土豆1个","茄子1根","青椒2个","蒜","生抽"],s:["土豆茄子切块","分别炸至金黄","爆香蒜末","加所有材料翻炒","加生抽调味出锅"]}},
+{name:"番茄牛腩",ings:["牛腩","番茄"],time:"90分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜浓郁",d:{i:["牛腩500g","番茄3个","姜","番茄酱","盐"],s:["牛腩切块焯水","番茄炒出汁","加番茄酱和水","放牛腩小火炖1小时加盐"]}},
+{name:"手撕包菜",ings:["包菜","辣椒","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"脆嫩微辣",d:{i:["包菜半颗","干辣椒","蒜","生抽","醋"],s:["包菜手撕成片","爆香干辣椒蒜片","大火炒包菜变软","淋醋生抽加盐出锅"]}},
+{name:"虾仁滑蛋",ings:["虾仁","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"嫩滑鲜美",d:{i:["虾仁200g","鸡蛋3个","盐","料酒"],s:["虾仁料酒腌","鸡蛋打散","炒虾仁变色盛出","蛋液半凝固加虾仁翻炒"]}},
+{name:"皮蛋豆腐",ings:["豆腐","皮蛋"],time:"5分钟",diff:"★☆☆",tags:["凉菜","快手"],desc:"简单清爽",d:{i:["内酯豆腐1盒","皮蛋2个","生抽","香油","葱"],s:["豆腐倒扣盘里","皮蛋切碎铺上","淋生抽香油撒葱花"]}},
+{name:"冬瓜排骨汤",ings:["排骨","冬瓜"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清淡鲜美",d:{i:["排骨300g","冬瓜500g","姜","盐"],s:["排骨焯水","加姜片足水炖40分钟","加冬瓜煮15分钟加盐"]}},
+{name:"玉米排骨汤",ings:["排骨","玉米"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清甜暖胃",d:{i:["排骨300g","玉米2根","胡萝卜","姜","盐"],s:["排骨焯水","玉米切段","加姜片烧开","小火炖50分钟加盐"]}},
+{name:"清炒时蔬",ings:["青菜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽健康",d:{i:["青菜300g","蒜3瓣","盐"],s:["青菜洗净","爆香蒜末","大火炒青菜变软","加盐出锅"]}},
+{name:"啤酒鸭",ings:["鸭","啤酒"],time:"50分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"鲜香入味",d:{i:["鸭半只","啤酒1罐","姜","八角","生抽","糖"],s:["鸭斩块焯水","炒至微黄出油","加姜八角糖翻炒","倒啤酒烧开","小火焖40分钟收汁"]}},
+{name:"香菇滑鸡",ings:["鸡","香菇"],time:"30分钟",diff:"★★☆",tags:["荤菜","大菜"],desc:"香菇鲜鸡嫩",d:{i:["鸡腿2个","干香菇8朵","姜","生抽","料酒","淀粉"],s:["鸡腿去骨切块腌制","香菇泡发切片","姜蒜爆香炒鸡块","加香菇生抽焖15分钟"]}},
+{name:"干煸四季豆",ings:["四季豆","干辣椒","蒜"],time:"15分钟",diff:"★★☆",tags:["素菜","辣"],desc:"干香下饭",d:{i:["四季豆300g","干辣椒","蒜","花椒","盐"],s:["四季豆去筋切段","热油炸至表皮起皱","爆香花椒干辣椒蒜","加四季豆翻炒加盐出锅"]}},
+{name:"醋溜白菜",ings:["白菜","辣椒","醋"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"酸辣脆爽",d:{i:["大白菜半颗","干辣椒","醋","生抽","盐"],s:["白菜切片","爆香干辣椒","大火炒白菜变软","沿锅边淋醋生抽加盐"]}},
+{name:"小炒肉",ings:["猪肉","青椒","辣椒","蒜"],time:"12分钟",diff:"★★☆",tags:["荤菜","快手","辣"],desc:"香辣开胃",d:{i:["五花肉200g","青椒2个","小米辣","蒜","生抽"],s:["五花肉切薄片","煎出油至微焦","加蒜辣椒爆香","加青椒生抽大火翻炒出锅"]}},
+{name:"干锅花菜",ings:["花菜","五花肉","辣椒"],time:"15分钟",diff:"★★☆",tags:["素菜","辣"],desc:"焦香微辣",d:{i:["花菜1颗","五花肉100g","干辣椒","蒜","生抽"],s:["花菜掰小朵焯水","五花肉煎出油","加干辣椒蒜爆香","加花菜大火翻炒加生抽"]}},
+{name:"丝瓜炒蛋",ings:["丝瓜","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清甜滑嫩",d:{i:["丝瓜1根","鸡蛋3个","盐"],s:["丝瓜去皮切片","鸡蛋打散炒熟","炒丝瓜变软","加鸡蛋盐炒匀出锅"]}},
+{name:"苦瓜炒蛋",ings:["苦瓜","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清热去火",d:{i:["苦瓜1根","鸡蛋3个","盐"],s:["苦瓜去瓤切片焯水","鸡蛋打散","热油炒鸡蛋盛出","炒苦瓜变软加鸡蛋盐炒匀"]}},
+{name:"红烧茄子",ings:["茄子","蒜","酱油"],time:"15分钟",diff:"★★☆",tags:["素菜","下饭"],desc:"软糯下饭",d:{i:["茄子2根","蒜","生抽","老抽","糖"],s:["茄子切条撒盐腌","挤出水份","热油炸茄子软","爆香蒜加生抽老抽糖","加茄子翻炒收汁"]}},
+{name:"油焖虾",ings:["虾","姜","葱"],time:"12分钟",diff:"★★☆",tags:["荤菜","快手"],desc:"鲜甜弹牙",d:{i:["大虾300g","姜","葱","料酒","生抽","糖"],s:["虾开背去虾线","热锅多油煎虾","加姜葱料酒","加生抽糖焖2分钟收汁"]}},
+{name:"荷塘小炒",ings:["莲藕","木耳","荷兰豆","胡萝卜"],time:"12分钟",diff:"★★☆",tags:["素菜","快手"],desc:"清爽脆嫩",d:{i:["莲藕1节","木耳","荷兰豆","胡萝卜","蒜"],s:["莲藕切片泡水","木耳泡发胡萝卜切片","爆香蒜末","加所有材料大火翻炒加盐"]}},
+{name:"肉末蒸蛋",ings:["猪肉","鸡蛋"],time:"15分钟",diff:"★☆☆",tags:["荤菜","快手"],desc:"嫩滑鲜香",d:{i:["猪肉末100g","鸡蛋3个","生抽","葱"],s:["鸡蛋加温水打散","过滤后蒸8分钟","炒肉末加生抽","铺在蒸蛋上撒葱花"]}},
+{name:"酸菜鱼",ings:["鱼","酸菜","干辣椒"],time:"40分钟",diff:"★★★",tags:["荤菜","大菜","辣"],desc:"酸辣开胃",d:{i:["草鱼1条","酸菜200g","干辣椒","花椒","姜","蒜"],s:["鱼片加料酒淀粉腌","炒香酸菜姜蒜","加足水煮酸菜","下鱼片煮至变白淋热油"]}},
+{name:"茶树菇炒肉",ings:["茶树菇","猪肉","青椒"],time:"15分钟",diff:"★★☆",tags:["荤菜","快手"],desc:"菌香四溢",d:{i:["茶树菇200g","猪肉150g","青椒","生抽","蒜"],s:["茶树菇泡发切段","肉切片腌制","炒肉变色盛出","爆香蒜加茶树菇","加辣椒肉片生抽翻炒"]}},
+{name:"板栗烧鸡",ings:["鸡","板栗"],time:"40分钟",diff:"★★☆",tags:["荤菜","大菜"],desc:"软糯鲜香",d:{i:["鸡半只","板栗200g","姜","生抽","料酒"],s:["鸡斩块焯水","炒鸡肉变色加姜","加板栗生抽料酒","加水焖煮20分钟收汁"]}},
+{name:"木须肉",ings:["猪肉","黄瓜","木耳","鸡蛋"],time:"15分钟",diff:"★★☆",tags:["荤菜","快手"],desc:"经典家常菜",d:{i:["猪肉150g","黄瓜1根","木耳","鸡蛋2个","生抽"],s:["肉切片黄瓜切片","鸡蛋炒熟盛出","炒肉片变色","加黄瓜木耳翻炒","加鸡蛋生抽炒匀出锅"]}},
+{name:"清炒小白菜",ings:["小白菜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽快手菜",d:{i:["小白菜300g","蒜3瓣","盐"],s:["小白菜洗净","爆香蒜末","大火炒至变软加盐出锅"]}},
+{name:"蛋花玉米羹",ings:["鸡蛋","玉米"],time:"10分钟",diff:"★☆☆",tags:["汤","快手"],desc:"香甜滑嫩",d:{i:["甜玉米粒1碗","鸡蛋1个","淀粉","糖"],s:["玉米粒加水煮开","淋蛋液搅散","淀粉水勾芡","加糖出锅"]}},
+{name:"蚝油生菜",ings:["生菜","蚝油","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"简单鲜美",d:{i:["生菜1颗","蚝油","蒜","生抽"],s:["生菜焯水10秒","爆香蒜末","加蚝油生抽调汁","淋在生菜上"]}},
+
+
 ];
-const FOOD=["鸡蛋","番茄","豆腐","猪肉","鸡胸肉","虾仁","土豆","胡萝卜","洋葱","青菜","西兰花","黄瓜","木耳","排骨","面条","茄子","白菜","花菜","玉米","青椒","蒜"];
+const FOOD=["鸡蛋","番茄","豆腐","猪肉","鸡胸肉","虾仁","土豆","胡萝卜","洋葱","青菜","西兰花","黄瓜","木耳","排骨","面条","茄子","白菜","花菜","玉米","青椒","蒜","莲藕","丝瓜","苦瓜","四季豆","生菜","包菜","酸菜","鸭","牛腩"];
 FOOD.forEach(f=>{const t=document.createElement("span");t.className="tag";t.textContent=f;t.onclick=()=>{const i=document.getElementById("ings");i.value=i.value?i.value+"、"+f:f;i.focus()};document.getElementById("tagBar").appendChild(t)});
 function generate(){
 const input=document.getElementById("ings").value.trim();
 if(!input){alert("请输入食材");return}
-const pref=document.getElementById("pref").value.trim();
 const u=input.split(/[，,、\s]+/).filter(Boolean);
 const btn=document.getElementById("genBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>AI 正在思考...';
 setTimeout(()=>{
@@ -124,26 +131,15 @@ const top=scored.filter(r=>r.match>0).slice(0,6);
 const area=document.getElementById("genArea");const list=document.getElementById("resultList");const empty=document.getElementById("empty");
 area.classList.add("show");empty.style.display="none";
 if(!top.length){list.innerHTML='<div class="empty"><div style="font-size:30px">🔍</div><p>没找到匹配的菜谱，试试其他食材</p></div>';btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';return}
-list.innerHTML=top.map((r,i)=>`
-<div class="recipe-item" onclick="showD(${DB.indexOf(DB.find(x=>x.name===r.name))})">
-<div class="name">${r.name}</div>
-<div class="meta">${r.time} · ${r.diff} · 匹配${r.match}种食材</div>
-<div class="desc">${r.desc}</div>
-</div>`).join("");
+list.innerHTML=top.map((r,i)=>`<div class="recipe-item" onclick="showD(${DB.indexOf(DB.find(x=>x.name===r.name))})"><div class="name">${r.name}</div><div class="meta">${r.time} · ${r.diff} · 匹配${r.match}种食材</div><div class="desc">${r.desc}</div></div>`).join("");
 btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';
 },1500);
 }
 function showD(i){
-const r=DB[i];if(!r)return;
+const r=DB[i];if(!r||!r.d)return;
 const m=document.getElementById("modal");const b=document.getElementById("modalBody");
-const txt=`【${r.name}】\n食材：${r.detail.ings.join("、")}\n\n做法：\n${r.detail.steps.map((s,j)=>`${j+1}.${s}`).join("\n")}`;
-b.innerHTML=`
-<h2>${r.name}</h2>
-<div style="font-size:13px;color:var(--text2);margin-bottom:10px">${r.time} · ${r.diff}${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
-<h3>📝 食材清单</h3><ul>${r.detail.ings.map(i=>`<li>${i}</li>`).join("")}</ul>
-<h3>👨‍🍳 做法</h3><ol>${r.detail.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
-<button class="modal-close" onclick="navigator.clipboard.writeText(\`${txt.replace(/\`/g,"")}\`).then(()=>{const t=document.createElement('div');t.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;z-index:400';t.textContent='已复制';document.body.appendChild(t);setTimeout(()=>t.remove(),1500)})">📄 复制菜谱</button>
-<button class="modal-close" onclick="closeD()">关闭</button>`;
+const txt=`【${r.name}】\n食材：${r.d.i.join("、")}\n\n做法：\n${r.d.s.map((s,j)=>`${j+1}.${s}`).join("\n")}`;
+b.innerHTML=`<h2>${r.name}</h2><div style="font-size:13px;color:var(--text2);margin-bottom:10px">${r.time} · ${r.diff}${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div><h3>📝 食材清单</h3><ul>${r.d.i.map(i=>`<li>${i}</li>`).join("")}</ul><h3>👨‍🍳 做法</h3><ol>${r.d.s.map(s=>`<li>${s}</li>`).join("")}</ol><button class="modal-close" onclick="navigator.clipboard.writeText(\`${txt.replace(/\`/g,"")}\`).then(()=>{const t=document.createElement('div');t.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;z-index:400';t.textContent='已复制';document.body.appendChild(t);setTimeout(()=>t.remove(),1500)})">📄 复制菜谱</button><button class="modal-close" onclick="closeD()">关闭</button>`;
 m.classList.add("show");document.body.style.overflow="hidden";
 }
 function closeD(){document.getElementById("modal").classList.remove("show");document.body.style.overflow=""}
