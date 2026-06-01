@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 菜谱助手</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--border:#e5e5e7;--tag:#f0f0f2;--primary:#e94e3b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.nav{background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-inner{max-width:720px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:10px}
+.nav h1{font-size:17px;font-weight:600}
+.nav-badge{font-size:11px;color:var(--text2);background:var(--tag);padding:3px 10px;border-radius:20px}
+.container{max-width:720px;margin:0 auto;padding:24px 20px}
+.hero{text-align:center;margin-bottom:28px}
+.hero h2{font-size:30px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px}
+.hero p{font-size:15px;color:var(--text2)}
+.card{background:var(--card);border-radius:16px;padding:24px;margin-bottom:16px}
+label{font-size:13px;font-weight:600;color:var(--text2);display:block;margin-bottom:8px}
+textarea,input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);font-size:15px;outline:none;font-family:inherit;transition:border-color .2s;background:var(--bg)}
+textarea:focus,input:focus{border-color:var(--primary)}
+textarea{min-height:65px;resize:vertical}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.tag{background:var(--tag);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;transition:all .2s;color:var(--text)}
+.tag:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn{background:var(--primary);color:#fff;border:none;padding:13px 24px;border-radius:12px;font-size:15px;cursor:pointer;width:100%;transition:transform .1s;font-weight:500;font-family:inherit}
+.btn:active{transform:scale(.98)}
+.btn:disabled{background:#ccc;cursor:not-allowed}
+.spinner{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.recipe-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.recipe-item{background:var(--tag);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.recipe-item:hover{background:#e8e8ec;transform:translateY(-1px)}
+.recipe-item .name{font-weight:600;font-size:15px;margin-bottom:3px}
+.recipe-item .meta{font-size:12px;color:var(--text2)}
+.recipe-item .desc{font-size:13px;color:#666;margin-top:4px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:200;backdrop-filter:blur(4px);padding:20px;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:18px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;animation:in .25s ease}
+@keyframes in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal h2{font-size:20px;font-weight:700;margin-bottom:10px}
+.modal h3{font-size:13px;font-weight:600;color:var(--text2);margin:14px 0 6px}
+.modal ul{padding-left:16px;line-height:2;font-size:14px;color:#444}
+.modal ol{padding-left:16px;line-height:2;font-size:14px;color:#444}
+.modal .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;background:var(--tag);margin:2px 3px 2px 0;cursor:default}
+.modal-close{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;margin-top:14px;font-family:inherit;transition:background .15s}
+.modal-close:hover{background:var(--tag)}
+.gen-area{display:none;margin-top:20px}
+.gen-area.show{display:block}
+.footer{text-align:center;color:var(--text2);font-size:12px;margin-top:32px;padding-bottom:20px}
+.loading{text-align:center;padding:30px;color:var(--text2)}
+.loading .pulse{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="nav">
+<div class="nav-inner">
+<h1>AI 菜谱助手</h1>
+<span class="nav-badge">Demo</span>
+</div>
+</div>
+<div class="container">
+<div class="hero">
+<h2>今天吃什么？</h2>
+<p>输入冰箱里的食材，AI 帮你推荐菜谱</p>
+</div>
+<div class="card">
+<label>🥕 食材</label>
+<textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea>
+<div class="tags" id="tagBar"></div>
+<input type="text" id="pref" placeholder="要求（选填）：少油、素食" />
+<button class="btn" id="genBtn" onclick="generate()">✨ AI 推荐菜谱</button>
+</div>
+<div class="gen-area" id="genArea">
+<div class="card"><div class="recipe-list" id="resultList"></div></div>
+</div>
+<div class="empty" id="empty"><div style="font-size:40px;margin-bottom:10px">🍽️</div><p>输入食材，点推荐试试</p></div>
+</div>
+<div class="modal-overlay" id="modal" onclick="if(event.target==this)closeD()"><div class="modal" id="modalBody"></div></div>
+<div class="footer">内容由 AI 生成，仅供参考</div>
+<script>
+const DB=[
+{name:"番茄炒蛋",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"酸甜开胃，国民家常菜",detail:{ings:["番茄 2个","鸡蛋 3个","葱 1根","盐","糖"],steps:["番茄切块，鸡蛋打散","热油炒熟鸡蛋盛出","炒番茄出汁加糖","倒回鸡蛋翻炒","撒葱花出锅"]}},
+{name:"麻婆豆腐",ings:["豆腐","猪肉","豆瓣酱"],time:"15分钟",diff:"★★☆",tags:["下饭","辣"],desc:"麻辣鲜香",detail:{ings:["嫩豆腐 1块","猪肉末 100g","豆瓣酱","花椒粉"],steps:["豆腐切块焯水","炒肉末加豆瓣酱","加水烧开放豆腐","小火炖5分钟勾芡","撒花椒粉"]}},
+{name:"青椒肉丝",ings:["青椒","猪肉"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"经典下饭菜",detail:{ings:["青椒 3个","猪肉 200g","蒜","生抽","淀粉"],steps:["青椒切丝，肉切丝腌制","热锅炒肉丝盛出","炒青椒丝断生","倒回肉丝翻炒出锅"]}},
+{name:"可乐鸡翅",ings:["鸡翅","可乐"],time:"30分钟",diff:"★★☆",tags:["荤菜"],desc:"零失败宴客菜",detail:{ings:["鸡中翅 10个","可乐 1罐","姜","生抽","料酒"],steps:["鸡翅划刀焯水","煎至两面金黄","加生抽料酒姜","倒可乐炖15分钟","大火收汁"]}},
+{name:"蒜蓉西兰花",ings:["西兰花","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽低脂",detail:{ings:["西兰花 1颗","蒜 4瓣","盐","蚝油"],steps:["西兰花掰小朵焯水","爆香蒜末","加西兰花翻炒","加蚝油盐出锅"]}},
+{name:"红烧肉",ings:["五花肉","酱油","冰糖"],time:"60分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"肥而不腻",detail:{ings:["五花肉 500g","冰糖","生抽","老抽","八角","姜"],steps:["肉切块焯水","煎出油加冰糖炒糖色","加生抽老抽八角姜","加开水小火炖40分钟","大火收汁"]}},
+{name:"酸辣土豆丝",ings:["土豆","辣椒"],time:"10分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"酸辣脆爽",detail:{ings:["土豆 2个","干辣椒","醋","花椒"],steps:["土豆切丝泡水","爆香花椒干辣椒","大火炒土豆丝","加醋盐翻炒出锅"]}},
+{name:"蛋炒饭",ings:["鸡蛋","米饭"],time:"8分钟",diff:"★☆☆",tags:["主食","快手"],desc:"最简单的美味",detail:{ings:["隔夜米饭 1碗","鸡蛋 2个","葱","盐"],steps:["鸡蛋打散","热油炒鸡蛋凝固","倒米饭大火翻炒","加盐葱花炒匀出锅"]}},
+{name:"西红柿蛋汤",ings:["番茄","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["汤","快手"],desc:"家常快手汤",detail:{ings:["番茄 2个","鸡蛋 2个","葱","盐"],steps:["番茄切块炒出汁","加两碗水烧开","淋蛋液搅散","加盐葱花出锅"]}},
+{name:"凉拌黄瓜",ings:["黄瓜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","凉菜","快手"],desc:"清爽开胃",detail:{ings:["黄瓜 2根","蒜","醋","生抽","辣椒油"],steps:["黄瓜拍碎切段","蒜切末","加醋生抽辣椒油拌匀","腌5分钟即可"]}},
+{name:"鱼香肉丝",ings:["猪肉","木耳","胡萝卜","青椒"],time:"20分钟",diff:"★★☆",tags:["荤菜","下饭"],desc:"酸甜微辣",detail:{ings:["猪肉 200g","木耳","胡萝卜","青椒","泡椒"],steps:["肉切丝腌制","胡萝卜青椒切丝","调鱼香汁","炒肉丝盛出","爆香泡椒炒蔬菜","加肉丝和汁翻炒"]}},
+{name:"糖醋排骨",ings:["排骨","醋","糖"],time:"40分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜可口",detail:{ings:["排骨 500g","醋","糖","生抽","料酒","姜"],steps:["排骨焯水","炒糖色加排骨上色","加醋料酒生抽姜","加开水小火炖30分钟","大火收汁"]}},
+{name:"葱油面",ings:["面条","葱","酱油"],time:"10分钟",diff:"★☆☆",tags:["主食","快手"],desc:"葱香四溢",detail:{ings:["面条 200g","葱 一把","生抽","老抽","糖"],steps:["面条煮熟过凉水","葱切段炸葱油","生抽老抽糖调汁","面条拌酱汁和葱油"]}},
+{name:"紫菜蛋花汤",ings:["紫菜","鸡蛋"],time:"5分钟",diff:"★☆☆",tags:["汤","快手"],desc:"最简单的汤",detail:{ings:["紫菜","鸡蛋 1个","虾皮","盐","香油"],steps:["水烧开淋蛋液","碗里放紫菜虾皮","汤冲入加盐香油"]}},
+{name:"回锅肉",ings:["五花肉","青椒","蒜苗","豆瓣酱"],time:"25分钟",diff:"★★☆",tags:["荤菜","下饭","辣"],desc:"川菜之王",detail:{ings:["五花肉 300g","青椒 2个","蒜苗","豆瓣酱"],steps:["五花肉煮至八分熟切片","热锅煎出油","加豆瓣酱炒红油","加青椒蒜苗翻炒出锅"]}},
+{name:"地三鲜",ings:["土豆","茄子","青椒"],time:"20分钟",diff:"★★☆",tags:["素菜","下饭"],desc:"东北经典素菜",detail:{ings:["土豆 1个","茄子 1根","青椒 2个","蒜","生抽"],steps:["土豆茄子切块","分别炸至金黄","爆香蒜末","加所有材料翻炒","加生抽调味出锅"]}},
+{name:"番茄牛腩",ings:["牛腩","番茄"],time:"90分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"酸甜浓郁",detail:{ings:["牛腩 500g","番茄 3个","姜","番茄酱","盐"],steps:["牛腩切块焯水","番茄炒出汁","加番茄酱和水烧开","放牛腩小火炖1小时","加盐出锅"]}},
+{name:"手撕包菜",ings:["包菜","辣椒","蒜"],time:"8分钟",diff:"★☆☆",tags:["素菜","快手","辣"],desc:"脆嫩微辣",detail:{ings:["包菜半颗","干辣椒","蒜","生抽","醋"],steps:["包菜手撕成片","爆香干辣椒蒜片","大火炒包菜变软","淋醋生抽加盐出锅"]}},
+{name:"虾仁滑蛋",ings:["虾仁","鸡蛋"],time:"10分钟",diff:"★☆☆",tags:["快手","家常"],desc:"嫩滑鲜美",detail:{ings:["虾仁 200g","鸡蛋 3个","盐","料酒"],steps:["虾仁加料酒腌","鸡蛋打散","炒虾仁变色盛出","蛋液半凝固加虾仁翻炒"]}},
+{name:"皮蛋豆腐",ings:["豆腐","皮蛋"],time:"5分钟",diff:"★☆☆",tags:["凉菜","快手"],desc:"简单清爽",detail:{ings:["内酯豆腐 1盒","皮蛋 2个","生抽","香油","葱"],steps:["豆腐倒扣盘里","皮蛋切碎铺上","淋生抽香油撒葱花"]}},
+{name:"冬瓜排骨汤",ings:["排骨","冬瓜"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清淡鲜美",detail:{ings:["排骨 300g","冬瓜 500g","姜","盐"],steps:["排骨焯水","加姜片足水炖40分钟","冬瓜切块加入","再煮15分钟加盐"]}},
+{name:"玉米排骨汤",ings:["排骨","玉米"],time:"60分钟",diff:"★★☆",tags:["汤","滋补"],desc:"清甜暖胃",detail:{ings:["排骨 300g","玉米 2根","胡萝卜","姜","盐"],steps:["排骨焯水","玉米切段","加姜片足水烧开","转小火炖50分钟加盐"]}},
+{name:"清炒时蔬",ings:["青菜","蒜"],time:"5分钟",diff:"★☆☆",tags:["素菜","快手"],desc:"清爽健康",detail:{ings:["青菜 300g","蒜 3瓣","盐"],steps:["青菜洗净","爆香蒜末","大火炒青菜变软","加盐出锅"]}},
+{name:"啤酒鸭",ings:["鸭","啤酒"],time:"50分钟",diff:"★★★",tags:["荤菜","大菜"],desc:"鲜香入味",detail:{ings:["鸭半只","啤酒 1罐","姜","八角","生抽","糖"],steps:["鸭斩块焯水","炒至微黄出油","加姜八角糖翻炒","倒啤酒大火烧开","转小火焖40分钟收汁"]}},
+{name:"香菇滑鸡",ings:["鸡","香菇"],time:"30分钟",diff:"★★☆",tags:["荤菜","大菜"],desc:"香菇鲜鸡嫩",detail:{ings:["鸡腿 2个","干香菇 8朵","姜","生抽","料酒","淀粉"],steps:["鸡腿去骨切块腌制","香菇泡发切片","姜蒜爆香炒鸡块","加香菇生抽","小火焖15分钟"]}},
+];
+const FOOD=["鸡蛋","番茄","豆腐","猪肉","鸡胸肉","虾仁","土豆","胡萝卜","洋葱","青菜","西兰花","黄瓜","木耳","排骨","面条","茄子","白菜","花菜","玉米","青椒","蒜"];
+FOOD.forEach(f=>{const t=document.createElement("span");t.className="tag";t.textContent=f;t.onclick=()=>{const i=document.getElementById("ings");i.value=i.value?i.value+"、"+f:f;i.focus()};document.getElementById("tagBar").appendChild(t)});
+function generate(){
+const input=document.getElementById("ings").value.trim();
+if(!input){alert("请输入食材");return}
+const pref=document.getElementById("pref").value.trim();
+const u=input.split(/[，,、\s]+/).filter(Boolean);
+const btn=document.getElementById("genBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>AI 正在思考...';
+setTimeout(()=>{
+const scored=DB.map(r=>{let m=0;u.forEach(ui=>{if(r.ings.some(ri=>ri.includes(ui)||ui.includes(ri)))m++});return{...r,match:m,rate:u.length?m/Math.max(u.length,r.ings.length):0}});
+scored.sort((a,b)=>b.rate-a.rate||a.ings.length-b.ings.length);
+const top=scored.filter(r=>r.match>0).slice(0,6);
+const area=document.getElementById("genArea");const list=document.getElementById("resultList");const empty=document.getElementById("empty");
+area.classList.add("show");empty.style.display="none";
+if(!top.length){list.innerHTML='<div class="empty"><div style="font-size:30px">🔍</div><p>没找到匹配的菜谱，试试其他食材</p></div>';btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';return}
+list.innerHTML=top.map((r,i)=>`
+<div class="recipe-item" onclick="showD(${DB.indexOf(DB.find(x=>x.name===r.name))})">
+<div class="name">${r.name}</div>
+<div class="meta">${r.time} · ${r.diff} · 匹配${r.match}种食材</div>
+<div class="desc">${r.desc}</div>
+</div>`).join("");
+btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';
+},1500);
+}
+function showD(i){
+const r=DB[i];if(!r)return;
+const m=document.getElementById("modal");const b=document.getElementById("modalBody");
+const txt=`【${r.name}】\n食材：${r.detail.ings.join("、")}\n\n做法：\n${r.detail.steps.map((s,j)=>`${j+1}.${s}`).join("\n")}`;
+b.innerHTML=`
+<h2>${r.name}</h2>
+<div style="font-size:13px;color:var(--text2);margin-bottom:10px">${r.time} · ${r.diff}${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+<h3>📝 食材清单</h3><ul>${r.detail.ings.map(i=>`<li>${i}</li>`).join("")}</ul>
+<h3>👨‍🍳 做法</h3><ol>${r.detail.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+<button class="modal-close" onclick="navigator.clipboard.writeText(\`${txt.replace(/\`/g,"")}\`).then(()=>{const t=document.createElement('div');t.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;z-index:400';t.textContent='已复制';document.body.appendChild(t);setTimeout(()=>t.remove(),1500)})">📄 复制菜谱</button>
+<button class="modal-close" onclick="closeD()">关闭</button>`;
+m.classList.add("show");document.body.style.overflow="hidden";
+}
+function closeD(){document.getElementById("modal").classList.remove("show");document.body.style.overflow=""}
+</script>
+</body>
+</html>
