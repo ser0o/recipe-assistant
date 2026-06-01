@@ -342,8 +342,20 @@ function showD(name){
 const r=DB.find(x=>x.name===name);const d=getDet(name);
 if(!r||!d)return;
 const m=document.getElementById("modal");const b=document.getElementById("modalBody");
-let txt="【"+r.name+"】\\n食材："+d.i.join("、")+"\\n\\n做法：\\n";d.s.forEach((s,j)=>{txt+=(j+1)+". "+s+"\\n"});
-b.innerHTML="<h2>"+r.name+"</h2><div style=\"font-size:13px;color:var(--text2);margin-bottom:10px\">"+r.t+" · "+r.d+r.c.map(t=>"<span class=\\"tag\\">"+t+"</span>").join("")+"</div><h3>📝 食材清单</h3><ul>"+d.i.map(i=>"<li>"+i+"</li>").join("")+"</ul><h3>👨‍🍳 做法</h3><ol>"+d.s.map(s=>"<li>"+s+"</li>").join("")+"</ol><button class=\\"modal-close\\" onclick=\\"copyR('"+name.replace(/'/g,"")+"')\\">📄 复制菜谱</button><button class=\\"modal-close\\" onclick=\\"closeD()\\">关闭</button>";
+b.innerHTML="";
+const h2=document.createElement("h2");h2.textContent=r.name;b.appendChild(h2);
+const meta=document.createElement("div");meta.style.cssText="font-size:13px;color:var(--text2);margin-bottom:10px";
+meta.textContent=r.t+" · "+r.d+" "+r.c.join(" ");b.appendChild(meta);
+const h3i=document.createElement("h3");h3i.textContent="食材清单";b.appendChild(h3i);
+const ul=document.createElement("ul");
+d.i.forEach(function(x){const li=document.createElement("li");li.textContent=x;ul.appendChild(li)});b.appendChild(ul);
+const h3s=document.createElement("h3");h3s.textContent="做法";b.appendChild(h3s);
+const ol=document.createElement("ol");
+d.s.forEach(function(x){const li=document.createElement("li");li.textContent=x;ol.appendChild(li)});b.appendChild(ol);
+const btn1=document.createElement("button");btn1.className="modal-close";btn1.textContent="复制菜谱";
+btn1.onclick=function(){copyR(name)};b.appendChild(btn1);
+const btn2=document.createElement("button");btn2.className="modal-close";btn2.textContent="关闭";
+btn2.onclick=function(){closeD()};b.appendChild(btn2);
 m.classList.add("show");document.body.style.overflow="hidden";
 }
 
