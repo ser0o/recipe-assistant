@@ -296,7 +296,7 @@ const DETS={
 };
 
 const FOOD=["鸡蛋","番茄","豆腐","猪肉","鸡胸肉","虾仁","土豆","胡萝卜","洋葱","青菜","西兰花","黄瓜","木耳","排骨","面条","茄子","白菜","花菜","玉米","青椒","蒜","莲藕","丝瓜","苦瓜","四季豆","生菜","包菜","鸭","牛腩","粉丝","空心菜","韭菜","娃娃菜","平菇","金针菇","海带","豆芽","酸菜","腊肉","牛肉","带鱼","鲫鱼","鱼头","鸡腿","鸡翅","鸡"];
-FOOD.forEach(f=>{const t=document.createElement("span");t.className="tag";t.textContent=f;t.onclick=()=>{const i=document.getElementById("ings");i.value=i.value?i.value+"、"+f:f;i.focus()};document.getElementById("tagBar").appendChild(t)});
+FOOD.forEach(f=>{const t=document.createElement("span");t.className="tag";t.textContent=f;t.onclick=()=>{const i=document.getElementById("ings");i.value=i.value?i.value+"、"+f:f};document.getElementById("tagBar").appendChild(t)});
 
 let currentFilter="all";let lastResults=[];
 
