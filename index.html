@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI 菜谱助手</title>
+<title>菜谱助手智能体</title>
 <style>
 :root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--border:#e5e5e7;--tag:#f0f0f2;--primary:#e94e3b}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -59,15 +59,15 @@ textarea{min-height:65px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="nav"><div class="nav-inner"><h1>AI 菜谱助手</h1><span class="nav-badge">Demo</span><div class="nav-right"><button class="btn-sm" onclick="randomPick()">🎲 随机</button><button class="btn-sm" onclick="resetAll()">↺ 重置</button></div></div></div>
+<div class="nav"><div class="nav-inner"><h1>菜谱助手智能体</h1><span class="nav-badge">Demo</span><div class="nav-right"><button class="btn-sm" onclick="randomPick()">🎲 随机</button><button class="btn-sm" onclick="resetAll()">↺ 重置</button></div></div></div>
 <div class="container">
-<div class="hero"><h2>今天吃什么？</h2><p>输入冰箱里的食材，AI 帮你推荐菜谱</p></div>
-<div class="card"><label>🥕 食材</label><textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea><div class="tags" id="tagBar"></div><button class="btn" id="genBtn" onclick="generate()">✨ AI 推荐菜谱</button></div>
+<div class="hero"><h2>今天吃什么？</h2><p>输入冰箱里的食材，智能推荐菜谱</p></div>
+<div class="card"><label>🥕 食材</label><textarea id="ings" placeholder="例：鸡蛋、番茄、豆腐、虾仁" rows="2"></textarea><div class="tags" id="tagBar"></div><button class="btn" id="genBtn" onclick="generate()">✨ 推荐菜谱</button></div>
 <div class="gen-area" id="genArea"><div class="filter-bar" id="filterBar"></div><div class="card"><div class="recipe-list" id="resultList"></div></div></div>
 <div class="empty" id="empty"><div style="font-size:40px">🍽️</div><p>输入食材，点推荐试试</p></div>
 </div>
 <div class="modal-overlay" id="modal" onclick="if(event.target==this)closeD()"><div class="modal" id="modalBody"></div></div>
-<div class="footer">内容由AI生成，仅供参考</div>
+<div class="footer">内容仅供参考</div>
 <script>
 const DB=[
 {name:"番茄炒蛋",i:["番茄","鸡蛋"],t:"10分钟",d:"★☆☆",c:["快手","家常"],m:"酸甜开胃"}
@@ -324,7 +324,7 @@ function generate(){
 const input=document.getElementById("ings").value.trim();
 if(!input){alert("请输入食材");return}
 const u=input.split(/[，,、\s]+/).filter(Boolean);
-const btn=document.getElementById("genBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>AI 正在思考...';
+const btn=document.getElementById("genBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span>正在检索...';
 setTimeout(()=>{
 const scored=DB.map(r=>{let m=0;u.forEach(ui=>{if(r.i.some(ri=>ri.includes(ui)||ui.includes(ri)))m++});return{...r,match:m,rate:u.length?m/Math.max(u.length,r.i.length):0}});
 scored.sort((a,b)=>b.rate-a.rate||a.i.length-b.i.length);
@@ -332,9 +332,9 @@ lastResults=scored.filter(r=>r.match>0);
 const area=document.getElementById("genArea");const empty=document.getElementById("empty");
 area.classList.add("show");empty.style.display="none";
 buildF();setF("all");
-if(!lastResults.length){document.getElementById("resultList").innerHTML='<div class="empty"><div style="font-size:30px">🔍</div><p>没找到菜谱，试试其他食材</p></div>';btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';return}
+if(!lastResults.length){document.getElementById("resultList").innerHTML='<div class="empty"><div style="font-size:30px">🔍</div><p>没找到菜谱，试试其他食材</p></div>';btn.disabled=false;btn.innerHTML='✨ 推荐菜谱';return}
 renderR(lastResults);
-btn.disabled=false;btn.innerHTML='✨ AI 推荐菜谱';
+btn.disabled=false;btn.innerHTML='✨ 推荐菜谱';
 },1500);
 }
 
